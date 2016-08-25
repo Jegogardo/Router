@@ -8,21 +8,22 @@
 <body>
 
     <nav>
-        <a href="prova/home.html"></a>
+        <a href=".">Home</a>
         <a href="prova/pics.html"></a>
         <a href="prova/contact.html"></a>
         <a href="prova/misc.html"></a>
         <a href="prova/about.html"></a>
+        <div data-url="prova/prova.html">Prova</div>
     </nav>
 
 </body>
 
 <script>
-    var a = document.querySelectorAll("nav > a");
+    var a = [].slice.call(document.querySelectorAll("nav > a"));
     //debugger
     a.forEach(function( link ){
         var name = link.href.substring( link.href.lastIndexOf("/")+1 );
-    if( name == "" )
+    if( name == "" || name=="index.html" )
         name = "home.html"
     link.textContent = name.substring(0,1).toUpperCase() + name.substring(1, name.lastIndexOf(".") );
     })
@@ -30,6 +31,7 @@
 </script>
 <script src="../Bhv.js"></script>
 <!--<script src="hub-compiled.js"></script>-->
+<script src="../Hub/hub.js"></script>
 <script src="router.js"></script>
 
 </html>

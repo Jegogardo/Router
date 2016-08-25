@@ -1,3 +1,4 @@
+'use strict'
 class Router extends Bhv {
 
     get staticEl() { return this._staticEl }
@@ -7,25 +8,33 @@ class Router extends Bhv {
         }*/
 
         let el = document.querySelector(wildcard);
-        //debugger
+        el.setAttribute("data-role","router")
         if( el.childElementCount == 0 )
             console.error(`The ${wildcard} element can't be empty`)
         else{
             let arr = [].slice.call(el.children)
             for(let i in arr){
                 if( 'href' in arr[i] ){
-                    arr[i].setAttribute("data-url", arr[i].href )
+                    if( arr[i].href != "" ){
+                        let href = arr[i].href.split(location.href)[1]
+                        arr[i].setAttribute("data-url", href == ""? ".": href )
+                        //arr[i].removeAttribute("href")
+                    }
+                    else
+                        return console.error("Must define the attribute 'href' in the 'a' element")
                 }
+                
+                    
                 
                 let url
                 if( url = arr[i].getAttribute("data-url") ){
                     if( arr[i].textContent !== "" )
-                        this.addPage( arr[i].textContent, url )
+                        this.addPage( url )
                     else
-                        console.error("No text found in this element")
+                        return console.error("No text found in this element")
                 }                
                 else
-                    console.error("No attribute href or data-url value found")
+                    return console.error("No attribute href or data-url value found")
 
                 
             }
@@ -34,45 +43,80 @@ class Router extends Bhv {
 
     get currentPage(){ return this._currentPage }
     set currentPage( page ){ 
-        page instanceof Page? this._currentPage = page: console.error("The currentPage must be a Page")
+        if(page instanceof Page){
+            this._currentPage = page
+            localStorage.setItem("currentPage",JSON.stringify(page))
+        }
+        else
+            console.error("The currentPage must be a Page")
      }
 
      constructor( wildcard = null ){
          super()
          this.pages = {}
+         this.currentPage = Page.currentPage()
          this.staticEl = wildcard || console.error("Must pass the CSSselector of the staticEl")
+
+         
      }
 
      addPage( ...newPage ){
          let page = new Page( newPage[0], newPage[1] )
-         this.pages[ page.name ] = page 
+         if( page.filename === this.currentPage.filename )
+            this.pages[ this.currentPage.filename ] = this.currentPage
+         else
+            this.pages[ page.filename ] = page 
      }
 
+
+     
      
 
 }
 
 
-class Page{
+class Page{    
 
-    constructor( name, url ){
-        this.filename = url.substring( url.lastIndexOf("/")+1 )
-        this.name = this.filename.substring( 0, this.filename.lastIndexOf(".") )
-        this.url = url
+    constructor( url ){
+        this.filename = Page.extractFileNameFromUrl( url )
+        //this.name = name
+        this.url = url == ""? ".": url //this.filename+"/"+this.name
         this.rootFolder = super.rootFolder
-        this.folder
+        this.folder;
         this.dependicies = {
             scripts:{},
             stylesheets:{}
         }
-        this.isCached
-        this.currentPage = false
+        this.isCached;
+        this.isCurrentPage = false
     }
+
+    static extractNameFromUrl( url ){
+        if( url.substring( url.length-1, url.length ) == "/" || url.substring( url.length-1, url.length ) == "\\"  )
+            return "index" 
+
+        return url.substring( url.lastIndexOf("/")+1, url.lastIndexOf(".") )
+    }
+
+    static extractFileNameFromUrl( url ){
+        if(url == "" || url == "." || url.substring( url.length-1, url.length ) == "/" || url.substring( url.length-1, url.length ) == "\\"  )
+            return "index.html"
+
+        return url.substring( url.lastIndexOf("/")+1 )
+    }
+
+    static currentPage(){
+         let currentPage = new Page( location.pathname.split(location.pathname)[1] )
+         currentPage.isCurrentPage = true
+         return currentPage
+    }
+
+    
 
 }
 
 let r = new Router( "nav" )
-
+r.debug
 /*
 
 usage
