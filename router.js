@@ -29,7 +29,7 @@ class Router extends Bhv {
                 let url
                 if( url = arr[i].getAttribute("data-url") ){
                     if( arr[i].textContent !== "" )
-                        this.addPage( url )
+                        this.addPage( url, arr[i] )
                     else
                         return console.error("No text found in this element")
                 }                
@@ -42,31 +42,51 @@ class Router extends Bhv {
     }
 
     get currentPage(){ return this._currentPage }
-    set currentPage( page ){ 
+    set currentPage( page ){
+
         if(page instanceof Page){
             this._currentPage = page
-            localStorage.setItem("currentPage",JSON.stringify(page))
+           // localStorage.setItem("currentPage",JSON.stringify(page))
         }
         else
             console.error("The currentPage must be a Page")
+     };
+
+     get pageWrapper(){return this._pageWrapper}
+     set pageWrapper( el ){
+         this._pageWrapper = document.querySelector( el )
+         this._pageWrapper.setAttribute("data-role","wrapper")
      }
 
-     constructor( wildcard = null ){
+
+
+     constructor( wildcard = null, pageWrapper = null){
          super()
          this.pages = {}
          this.currentPage = Page.currentPage()
          this.staticEl = wildcard || console.error("Must pass the CSSselector of the staticEl")
+         this.pageWrapper = pageWrapper || console.error("Must pass the CSSselector of the wrapper")
+         this.stack = []
 
+         this.stack.append = this.currentPage
          
      }
 
      addPage( ...newPage ){
          let page = new Page( newPage[0], newPage[1] )
          if( page.filename === this.currentPage.filename )
-            this.pages[ this.currentPage.filename ] = this.currentPage
+            this.currentPage = this.pages[ this.currentPage.filename ] = page 
          else
-            this.pages[ page.filename ] = page 
+            this.pages[ page.filename ] = page
+
+        page.trigger.addEventListener("click", this.changePage.bind(this))
      }
+
+     changePage( e ){
+         e.preventDefault()
+     }
+
+
 
 
      
@@ -77,7 +97,7 @@ class Router extends Bhv {
 
 class Page{    
 
-    constructor( url ){
+    constructor( url, trigger = {} ){
         this.filename = Page.extractFileNameFromUrl( url )
         //this.name = name
         this.url = url == ""? ".": url //this.filename+"/"+this.name
@@ -89,7 +109,13 @@ class Page{
         }
         this.isCached;
         this.isCurrentPage = false
+        this.trigger = trigger
+        this.trigger.page = this
+
+        
     }
+
+
 
     static extractNameFromUrl( url ){
         if( url.substring( url.length-1, url.length ) == "/" || url.substring( url.length-1, url.length ) == "\\"  )
@@ -115,7 +141,7 @@ class Page{
 
 }
 
-let r = new Router( "nav" )
+let r = new Router( "nav", "div#wrapper" )
 r.debug
 /*
 
