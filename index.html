@@ -8,14 +8,26 @@
 <body>
 
     <nav>
-        <a href="prova/home.html">
-        <a href="prova/pics.html">
-        <a href="prova/contact.html">
-        <a href="prova/misc.html">
-        <a href="prova/about.html">
+        <a href="prova/home.html"></a>
+        <a href="prova/pics.html"></a>
+        <a href="prova/contact.html"></a>
+        <a href="prova/misc.html"></a>
+        <a href="prova/about.html"></a>
     </nav>
 
 </body>
+
+<script>
+    var a = document.querySelectorAll("nav > a");
+    //debugger
+    a.forEach(function( link ){
+        var name = link.href.substring( link.href.lastIndexOf("/")+1 );
+    if( name == "" )
+        name = "home.html"
+    link.textContent = name.substring(0,1).toUpperCase() + name.substring(1, name.lastIndexOf(".") );
+    })
+    
+</script>
 <script src="../Bhv.js"></script>
 <!--<script src="hub-compiled.js"></script>-->
 <script src="router.js"></script>
