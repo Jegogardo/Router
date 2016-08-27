@@ -11,86 +11,105 @@ class Router extends Bhv {
         el.setAttribute("data-role","router")
         if( el.childElementCount == 0 )
             console.error(`The ${wildcard} element can't be empty`)
-        else{
-            let arr = [].slice.call(el.children)
-            for(let i in arr){
-                if( 'href' in arr[i] ){
-                    if( arr[i].href != "" ){
-                        let href = arr[i].href.split(location.href)[1]
-                        arr[i].setAttribute("data-url", href == ""? ".": href )
-                        //arr[i].removeAttribute("href")
-                    }
-                    else
-                        return console.error("Must define the attribute 'href' in the 'a' element")
-                }
-                
-                    
-                
-                let url
-                if( url = arr[i].getAttribute("data-url") ){
-                    if( arr[i].textContent !== "" )
-                        this.addPage( url, arr[i] )
-                    else
-                        return console.error("No text found in this element")
-                }                
-                else
-                    return console.error("No attribute href or data-url value found")
+            else{
+                let arr = [].slice.call(el.children)
+                for(let i in arr){
+                    if( 'href' in arr[i] ){
+                        if( arr[i].href != "" ){
+                            let href = arr[i].href.split(location.href)[1]
+                            arr[i].setAttribute("data-url", href == ""? ".": href )
+                            //arr[i].removeAttribute("href")
+                        }
+                        else
+                            return console.error("Must define the attribute 'href' in the 'a' element")
+                            }
 
-                
+
+
+                    let url
+                    if( url = arr[i].getAttribute("data-url") ){
+                        if( arr[i].textContent !== "" )
+                            this.addPage( url, arr[i] )
+                            else
+                                return console.error("No text found in this element")
+                                }
+                    else
+                        return console.error("No attribute href or data-url value found")
+
+
+                        }
             }
-        }
     }
 
     get currentPage(){ return this._currentPage }
     set currentPage( page ){
 
         if(page instanceof Page){
+            if( this.newPage  ){
+                this.lastPage = this._currentPage
+                this._pageWrapper.innerHTML = page.pageContent.documentElement.innerHTML
+            }
             this._currentPage = page
-           // localStorage.setItem("currentPage",JSON.stringify(page))
+
+            // localStorage.setItem("currentPage",JSON.stringify(page))
         }
         else
             console.error("The currentPage must be a Page")
-     };
+            };
 
-     get pageWrapper(){return this._pageWrapper}
-     set pageWrapper( el ){
-         this._pageWrapper = document.querySelector( el )
-         this._pageWrapper.setAttribute("data-role","wrapper")
-     }
+    get pageWrapper(){return this._pageWrapper}
+    set pageWrapper( el ){
+        this._pageWrapper = document.querySelector( el )
+        this._pageWrapper.setAttribute("data-role","wrapper")
+    }
 
 
 
-     constructor( wildcard = null, pageWrapper = null){
-         super()
-         this.pages = {}
-         this.currentPage = Page.currentPage()
-         this.staticEl = wildcard || console.error("Must pass the CSSselector of the staticEl")
-         this.pageWrapper = pageWrapper || console.error("Must pass the CSSselector of the wrapper")
-         this.stack = []
+    constructor( wildcard = null, pageWrapper = null){
+        super()
+        this.pages = {}
+        this.currentPage = Page.currentPage()
+        this.staticEl = wildcard || console.error("Must pass the CSSselector of the staticEl")
+        this.pageWrapper = pageWrapper || console.error("Must pass the CSSselector of the wrapper")
+        this.stack = []
+        this.lastPage = null
+        this.newPage = null
+        this.stack.append = this.currentPage
 
-         this.stack.append = this.currentPage
-         
-     }
+    }
 
-     addPage( ...newPage ){
-         let page = new Page( newPage[0], newPage[1] )
-         if( page.filename === this.currentPage.filename )
+    addPage( ...newPage ){
+        let page = new Page( newPage[0], newPage[1] )
+        if( page.filename === this.currentPage.filename )
             this.currentPage = this.pages[ this.currentPage.filename ] = page 
-         else
-            this.pages[ page.filename ] = page
+            else
+                this.pages[ page.filename ] = page
 
-        page.trigger.addEventListener("click", this.changePage.bind(this))
-     }
+                page.trigger.addEventListener("click", this.changePage.bind(this))
+    }
 
-     changePage( e ){
-         e.preventDefault()
-     }
+    changePage( e ){
+        e.preventDefault()
+
+        this.newPage = e.target.pageParent;
+
+        this.newPage.hub.ondone = ( result )=>{
+            this.newPage.pageContent.innerHTML = result.response
+            this.newPage.isCached = true
+            this.currentPage = this.newPage
+            this.newPage = null
+        }
+        this.newPage.load()
+
+
+
+    }
 
 
 
 
-     
-     
+
+
 
 }
 
@@ -110,9 +129,9 @@ class Page{
         this.isCached;
         this.isCurrentPage = false
         this.trigger = trigger
-        this.trigger.page = this
-
-        
+        this.trigger.pageParent = this
+        this.pageContent = document.implementation.createHTMLDocument(Page.extractNameFromUrl( url ))
+        this.hub = new Hub( this.url )
     }
 
 
@@ -121,23 +140,28 @@ class Page{
         if( url.substring( url.length-1, url.length ) == "/" || url.substring( url.length-1, url.length ) == "\\"  )
             return "index" 
 
-        return url.substring( url.lastIndexOf("/")+1, url.lastIndexOf(".") )
+            return url.substring( url.lastIndexOf("/")+1, url.lastIndexOf(".") )
     }
 
     static extractFileNameFromUrl( url ){
         if(url == "" || url == "." || url.substring( url.length-1, url.length ) == "/" || url.substring( url.length-1, url.length ) == "\\"  )
             return "index.html"
 
-        return url.substring( url.lastIndexOf("/")+1 )
+            return url.substring( url.lastIndexOf("/")+1 )
     }
 
     static currentPage(){
-         let currentPage = new Page( location.pathname.split(location.pathname)[1] )
-         currentPage.isCurrentPage = true
-         return currentPage
+        let currentPage = new Page( location.pathname.split(location.pathname)[1] )
+        currentPage.isCurrentPage = true
+        return currentPage
     }
 
-    
+    load(){
+
+        this.hub.connect()
+    }
+
+
 
 }
 
@@ -150,7 +174,7 @@ usage
     the staticEl must contain a element with the href attribute setted or 
     if you are using someone else element in place of 'a' you must set the attribute data-url
     to the url that point at the specific page.
-    
+
 
 
     rt.staticEl = {
@@ -166,7 +190,7 @@ usage
         classActiveLink: "fooActiveLink", // class CSS assigned to the link active, so actual page choosen
         classHoverLink: "fooHoverLink", // class CSS assigned to the link hovered
         idClassEl: "fooId" // id assigned to staticEl element
-        
+
     }   // this setter will create a nav HTMLElement 
 
 */
