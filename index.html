@@ -8,34 +8,40 @@
 <body>
 
     <nav>
-        <a href=".">Home</a>
-        <a href="prova/pics.html"></a>
-        <a href="prova/contact.html"></a>
-        <a href="prova/misc.html"></a>
-        <a href="prova/about.html"></a>
+       <a href=".">Pagina Home</a>
+        <a href="index.html">Pagina Home</a>
+        <a href="pics.html">Pagina Pics</a>
+        <a href="prova/contact.html">Pagina Contact</a>
+        <a href="prova/prova2/misc.html">Pagina Misc</a>
+        <a href="../about.html">Pagina About</a>
+        <a href="prova/prova.html">Pagina Prova</a>
         <div data-url="prova/prova.html">Prova</div>
     </nav>
 
     <div id="wrapper">
         <br>prova pagina index
+        <iframe style="width: 100%;border: 0;"></iframe>
     </div>
-
+    <span id="event"></span>
 </body>
 
 <script>
-    var a = [].slice.call(document.querySelectorAll("nav > a"));
+   /* var a = [].slice.call(document.querySelectorAll("nav > a"));
     //debugger
     a.forEach(function( link ){
+        link.addEventListener("click",function(event){event.preventDefault();document.querySelector("iframe").src=event.target.href})
+
         var name = link.href.substring( link.href.lastIndexOf("/")+1 );
     if( name == "" || name=="index.html" )
         name = "home.html"
     link.textContent = name.substring(0,1).toUpperCase() + name.substring(1, name.lastIndexOf(".") );
-    })
+    })*/
     
 </script>
 <script src="../Bhv.js"></script>
-<!--<script src="hub-compiled.js"></script>-->
+<!-- <script src="hub-compiled.js"></script> -->
 <script src="../Hub/hub.js"></script>
 <script src="router.js"></script>
+<script src="event.js"></script>
 
 </html>

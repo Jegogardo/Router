@@ -47,7 +47,7 @@ class Router extends Bhv {
         if(page instanceof Page){
             if( this.newPage  ){
                 this.lastPage = this._currentPage
-                this._pageWrapper.innerHTML = page.pageContent.documentElement.innerHTML
+                this._pageWrapper.innerHTML = page.pageContent
             }
             this._currentPage = page
 
@@ -94,7 +94,7 @@ class Router extends Bhv {
         this.newPage = e.target.pageParent;
 
         this.newPage.hub.ondone = ( result )=>{
-            this.newPage.pageContent.innerHTML = result.response
+            this.newPage.pageContent = result.response
             this.newPage.isCached = true
             this.currentPage = this.newPage
             this.newPage = null
@@ -114,50 +114,95 @@ class Router extends Bhv {
 }
 
 
-class Page{    
+class Page extends Bhv{
 
-    constructor( url, trigger = {} ){
-        this.filename = Page.extractFileNameFromUrl( url )
-        //this.name = name
+    static get ROOT(){ return "/"}
+    static get CURRENT_ROOT(){return location.pathname}
+
+    static get EVENTS(){ return {
+                        loading:"onPageLoading", start:"onPageLoadStart",
+                        end:"onPageLoadEnd", back:"onBackPage", forward:"onForwardPage" } }
+
+    get trigger(){ return this._trigger }
+    set trigger( el ){
+        this._trigger = el
+        if( el )
+            this._trigger.pageParent = this
+    }
+
+    constructor( url, trigger = null ){
+        super()
+        this.filename = Page.getFilenameByUrl( url )
+        this.name = Page.getNameByUrl( url )
         this.url = url == ""? ".": url //this.filename+"/"+this.name
-        this.rootFolder = super.rootFolder
-        this.folder;
+        this.folder = Page.getDirByUrl( url )
         this.dependicies = {
             scripts:{},
             stylesheets:{}
         }
         this.isCached;
         this.isCurrentPage = false
-        this.trigger = trigger
-        this.trigger.pageParent = this
-        this.pageContent = document.implementation.createHTMLDocument(Page.extractNameFromUrl( url ))
+        this.trigger = trigger || null
+        this.pageContent //= document.implementation.createHTMLDocument(Page.extractNameFromUrl( url ))
         this.hub = new Hub( this.url )
+        this._events = Page.EVENTS
+        for( let i in this._events  ){
+            let temp = document.createEvent("Event")
+            temp.initEvent( this._events[ i ], true, true )
+            temp.page = this
+            this._events[ i ] = temp
+        }
+
     }
 
 
-
-    static extractNameFromUrl( url ){
-        if( url.substring( url.length-1, url.length ) == "/" || url.substring( url.length-1, url.length ) == "\\"  )
-            return "index" 
-
-            return url.substring( url.lastIndexOf("/")+1, url.lastIndexOf(".") )
-    }
-
-    static extractFileNameFromUrl( url ){
-        if(url == "" || url == "." || url.substring( url.length-1, url.length ) == "/" || url.substring( url.length-1, url.length ) == "\\"  )
-            return "index.html"
+    static getFilenameByUrl( url ){
+        //debugger
+        if( url.endsWith( "/" ) )
+            return "."
 
             return url.substring( url.lastIndexOf("/")+1 )
     }
 
+    static getNameByUrl( url ){
+        //debugger
+        let str = Page.getFilenameByUrl( url )
+        if( str == "." )
+            return str;
+        else
+            return str.substring( 0, str.lastIndexOf(".") );
+    }
+
+    static getDirByUrl( url ){
+        if( !url.endsWith( "/" ) ){
+            url = url.substring(0, url.lastIndexOf("/")+1)
+        }
+        else{
+            if( url.indexOf( location.origin ) == 0 ){
+                url = url.split( location.origin )[1]
+            }
+        }
+
+        return url
+    }
+
+
     static currentPage(){
-        let currentPage = new Page( location.pathname.split(location.pathname)[1] )
+        let currentPage = new Page( location.pathname )
         currentPage.isCurrentPage = true
         return currentPage
     }
 
     load(){
+        document.dispatchEvent( this._events.start )
+        this.hub.ondone = ( result )=>{
 
+            this.pageContent = result.response
+
+            document.dispatchEvent( this._events.end )
+
+        }
+        //document.dispatchEvent( this._events.loading )
         this.hub.connect()
     }
 
@@ -165,8 +210,23 @@ class Page{
 
 }
 
-let r = new Router( "nav", "div#wrapper" )
-r.debug
+var t = new Page(".")
+
+var i = 0;
+//t.debug
+document.addEventListener( "onPageLoadStart", (e)=>{
+    console.log("inizio load")
+} )
+document.addEventListener( "onPageLoadEnd", (e)=>{
+    console.log("fine load")
+    console.log(e.page.pageContent)
+} )
+/*document.addEventListener( "onPageLoading", (e)=>{
+    console.log(i++)
+} */
+t.load()
+//let r = new Router( "nav", "div#wrapper" )
+//r.debug
 /*
 
 usage
@@ -194,3 +254,38 @@ usage
     }   // this setter will create a nav HTMLElement 
 
 */
+
+
+//let links = [].slice.call(document.querySelectorAll("nav > a"));
+/*let arr = ["http://192.168.1.6/Behaviour/Router/", "http://192.168.1.6/Behaviour/Router/index.html", "http://192.168.1.6/Behaviour/Router/pics.html", "http://192.168.1.6/Behaviour/Router/prova/contact.html", "http://192.168.1.6/Behaviour/Router/prova/prova2/misc.html", "http://192.168.1.6/Behaviour/about.html", "http://192.168.1.6/Behaviour/Router/prova/prova.html"]
+
+console.groupCollapsed( "Filename" )
+arr.forEach(( link )=>{
+    console.log(Page.getFilenameByUrl( link))
+})
+
+console.groupEnd(  )
+
+console.groupCollapsed( "Name" )
+arr.forEach(( link )=>{
+    console.log(Page.getNameByUrl( link ))
+})
+console.groupEnd(  )
+
+
+console.groupCollapsed( "Directory" )
+arr.forEach(( link )=>{
+    console.log(Page.getDirByUrl( link ))
+})
+console.groupEnd(  )*/
+
+
+/*
+["http://192.168.1.6/Behaviour/Router/",
+"http://192.168.1.6/Behaviour/Router/index.html", "http://192.168.1.6/Behaviour/Router/pics.html", "http://192.168.1.6/Behaviour/Router/prova/contact.html", "http://192.168.1.6/Behaviour/Router/prova/prova2/misc.html", "http://192.168.1.6/Behaviour/about.html", "http://192.168.1.6/Behaviour/Router/prova/prova.html"]
+*/
+
+
+
+
+
