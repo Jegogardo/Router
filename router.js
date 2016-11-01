@@ -93,12 +93,11 @@ class Router extends Bhv {
 
         this.newPage = e.target.pageParent;
 
-        this.newPage.hub.ondone = ( result )=>{
-            this.newPage.pageContent = result.response
-            this.newPage.isCached = true
+        document.addEventListener("onPageLoadEnd", ( result )=>{
+
             this.currentPage = this.newPage
             this.newPage = null
-        }
+        })
         this.newPage.load()
 
 
@@ -114,107 +113,12 @@ class Router extends Bhv {
 }
 
 
-class Page extends Bhv{
-
-    static get ROOT(){ return "/"}
-    static get CURRENT_ROOT(){return location.pathname}
-
-    static get EVENTS(){ return {
-                        loading:"onPageLoading", start:"onPageLoadStart",
-                        end:"onPageLoadEnd", back:"onBackPage", forward:"onForwardPage" } }
-
-    get trigger(){ return this._trigger }
-    set trigger( el ){
-        this._trigger = el
-        if( el )
-            this._trigger.pageParent = this
-    }
-
-    constructor( url, trigger = null ){
-        super()
-        this.filename = Page.getFilenameByUrl( url )
-        this.name = Page.getNameByUrl( url )
-        this.url = url == ""? ".": url //this.filename+"/"+this.name
-        this.folder = Page.getDirByUrl( url )
-        this.dependicies = {
-            scripts:{},
-            stylesheets:{}
-        }
-        this.isCached;
-        this.isCurrentPage = false
-        this.trigger = trigger || null
-        this.pageContent //= document.implementation.createHTMLDocument(Page.extractNameFromUrl( url ))
-        this.hub = new Hub( this.url )
-        this._events = Page.EVENTS
-        for( let i in this._events  ){
-            let temp = document.createEvent("Event")
-            temp.initEvent( this._events[ i ], true, true )
-            temp.page = this
-            this._events[ i ] = temp
-        }
-
-    }
 
 
-    static getFilenameByUrl( url ){
-        //debugger
-        if( url.endsWith( "/" ) )
-            return "."
+//var t = new Page("prova/prova2/misc.html")
 
-            return url.substring( url.lastIndexOf("/")+1 )
-    }
-
-    static getNameByUrl( url ){
-        //debugger
-        let str = Page.getFilenameByUrl( url )
-        if( str == "." )
-            return str;
-        else
-            return str.substring( 0, str.lastIndexOf(".") );
-    }
-
-    static getDirByUrl( url ){
-        if( !url.endsWith( "/" ) ){
-            url = url.substring(0, url.lastIndexOf("/")+1)
-        }
-        else{
-            if( url.indexOf( location.origin ) == 0 ){
-                url = url.split( location.origin )[1]
-            }
-        }
-
-        return url
-    }
-
-
-    static currentPage(){
-        let currentPage = new Page( location.pathname )
-        currentPage.isCurrentPage = true
-        return currentPage
-    }
-
-    load(){
-        document.dispatchEvent( this._events.start )
-        this.hub.ondone = ( result )=>{
-
-            this.pageContent = result.response
-
-            document.dispatchEvent( this._events.end )
-
-        }
-        //document.dispatchEvent( this._events.loading )
-        this.hub.connect()
-    }
-
-
-
-}
-
-var t = new Page(".")
-
-var i = 0;
 //t.debug
-document.addEventListener( "onPageLoadStart", (e)=>{
+/*document.addEventListener( "onPageLoadStart", (e)=>{
     console.log("inizio load")
 } )
 document.addEventListener( "onPageLoadEnd", (e)=>{
@@ -224,9 +128,9 @@ document.addEventListener( "onPageLoadEnd", (e)=>{
 /*document.addEventListener( "onPageLoading", (e)=>{
     console.log(i++)
 } */
-t.load()
-//let r = new Router( "nav", "div#wrapper" )
-//r.debug
+//t.load()
+let r = new Router( "nav", "div#wrapper" )
+r.debug
 /*
 
 usage
@@ -284,8 +188,5 @@ console.groupEnd(  )*/
 ["http://192.168.1.6/Behaviour/Router/",
 "http://192.168.1.6/Behaviour/Router/index.html", "http://192.168.1.6/Behaviour/Router/pics.html", "http://192.168.1.6/Behaviour/Router/prova/contact.html", "http://192.168.1.6/Behaviour/Router/prova/prova2/misc.html", "http://192.168.1.6/Behaviour/about.html", "http://192.168.1.6/Behaviour/Router/prova/prova.html"]
 */
-
-
-
 
 
