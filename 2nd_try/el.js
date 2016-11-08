@@ -1,5 +1,3 @@
-//let protectedFoo = new WeakMap();
-
 class ${
 
 
@@ -18,7 +16,7 @@ class ${
                 return _isWritten;
             },
             set: function( value ){
-                debugger
+                //debugger
                 if( typeof value != 'boolean' )
                     throw new Error('Need a boolean');
 
@@ -87,9 +85,9 @@ class ${
 
     remove(){
 
-        if( this._parent != null && this._isWritten ){
-            this._parent.removeChild(this.$);
-            this._isWritten = false;
+        if( this.parent != null && this.isWritten ){
+            this.parent.removeChild(this.$);
+            this.isWritten = false;
         }
 
         return this;
@@ -104,11 +102,8 @@ class ${
 
     hide(){}
 
-     
-    
-    
     static new(node, toWrite) {
-        // Crea Html element per comodità
+        
         if( typeof node == "string"){
             var string = node.split(",");
 
@@ -161,3 +156,10 @@ class ${
 }
 
 let span = new $('span,id_span,class_span')
+span.textContent = 'prova';
+
+
+
+
+
+
