@@ -1,4 +1,4 @@
-let protectedFoo = new WeakMap();
+//let protectedFoo = new WeakMap();
 
 class ${
 
@@ -9,7 +9,7 @@ class ${
         let _isWritten = false;
         let _isShowed = false;
         let _parent = parent || null;
-        let id = Symbol('$');
+        let _$ = null;
         
 
 
@@ -22,7 +22,7 @@ class ${
                 if( typeof value != 'boolean' )
                     throw new Error('Need a boolean');
 
-                _isW = value;
+                _isWritten = value;
 
                 return this;
             }
@@ -33,22 +33,13 @@ class ${
                 return _isShowed;
             }
         });
-        
-        this[prop] = function( value ){
-                if( typeof value != 'boolean' )
-                    throw new Error('Need a boolean');
-
-                _isShowed = value;
-
-                return this;
-        }
-        
+          
         Object.defineProperty(this, "parent", {
             get : function () {
                 return _parent || null;
             },
             set: function( value ){
-                debugger;
+                //debugger;
                 if( typeof value instanceof HTMLElement )
                     throw new Error('Need an HMTLElement');
 
@@ -58,15 +49,27 @@ class ${
             }
         });
         
-        
+        Object.defineProperty(this, '$',{
+            get: function(){
+                return _$ || null;
+            },
+            set: function(value){
+                if( typeof value instanceof HTMLElement )
+                    throw new Error('Need an HMTLElement');
+
+                _$ = value;
+
+                return this;
+                
+            }
+        })
 
         
-
-
       //  debugger
-        let self  = $.new(el, parent)
+        this.$  = $.new(el, parent)
+        let self = _$;
         self.$ = Object.assign(this);
-        _parent = self.parentElement;
+        _parent = this.$.parentElement;
         return self;
     }
 
@@ -74,9 +77,9 @@ class ${
             
         this.parent = parent;
 
-        if( this._parent != null && !this._isWritten ){
-            this._parent.appendChild(this);
-            this._isWritten = true;
+        if( this.parent != null && !this.isWritten ){
+            this.parent.appendChild(this.$);
+            this.isWritten = true;
         }
 
         return this;
@@ -101,11 +104,7 @@ class ${
 
     hide(){}
 
-    changeShowed( value){
-        debugger
-        this[prop](value)
-    }
-    
+     
     
     
     static new(node, toWrite) {
