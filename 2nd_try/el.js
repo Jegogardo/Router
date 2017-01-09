@@ -1,3 +1,4 @@
+'use strict';
 class ${
 
 
@@ -8,7 +9,7 @@ class ${
         let _isShowed = false;
         let _parent = parent || null;
         let _$ = null;
-        
+
 
 
         Object.defineProperty(this, "isWritten", {
@@ -31,7 +32,7 @@ class ${
                 return _isShowed;
             }
         });
-          
+
         Object.defineProperty(this, "parent", {
             get : function () {
                 return _parent || null;
@@ -46,7 +47,7 @@ class ${
                 return this;
             }
         });
-        
+
         Object.defineProperty(this, '$',{
             get: function(){
                 return _$ || null;
@@ -58,12 +59,12 @@ class ${
                 _$ = value;
 
                 return this;
-                
+
             }
         })
 
-        
-      //  debugger
+
+        // debugger
         this.$  = $.new(el, parent)
         let self = _$;
         self.$ = Object.assign(this);
@@ -72,23 +73,34 @@ class ${
     }
 
     write(parent = null){
-            
-        this.parent = parent;
 
-        if( this.parent != null && !this.isWritten ){
+        if(parent != null){
+            this.parent = parent;
             this.parent.appendChild(this.$);
             this.isWritten = true;
+        }
+        else{
+            if(this.parent != null){
+                this.parent.appendChild(this.$);
+                this.isWritten = true;
+            }
+            else{
+                throw new Error('Need a parent');
+            }
         }
 
         return this;
     }
 
-    remove(){
+    remove(removeParentToo = false){
 
         if( this.parent != null && this.isWritten ){
             this.parent.removeChild(this.$);
             this.isWritten = false;
         }
+
+        if(removeParentToo)
+            this.parent = null;
 
         return this;
 
@@ -103,7 +115,7 @@ class ${
     hide(){}
 
     static new(node, toWrite) {
-        
+
         if( typeof node == "string"){
             var string = node.split(",");
 
@@ -155,7 +167,7 @@ class ${
 
 }
 
-let span = new $('span,id_span,class_span')
+let span = new $('span,id_span,class_span class_span2')
 span.textContent = 'prova';
 
 
