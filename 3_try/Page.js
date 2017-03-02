@@ -52,6 +52,7 @@ class Page{
         }
         this.hub.onerror = (resutl)=>{
             this.unload();
+            this.iframe.contentDocument.write("Pagina non trovata");
         }
         this.hub.onstart = () =>{
             this.handlePendingTimeout = setTimeout(function () {
@@ -65,7 +66,8 @@ class Page{
 
     }
     unload(){
-        this.iframe.contentDocument.write("Pagina non trovata");
+        this.iframe.contentDocument.open();
+        this.iframe.contentDocument.write();
         this.isLoading = false;
 
     }

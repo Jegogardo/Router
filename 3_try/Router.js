@@ -9,6 +9,7 @@ class Router{
         this.currentPage = null;
         this.staticEl = null;
         this.events = {"getPageFromStaticElEvent":document.createEvent('Event'),};
+        this.reloadPageAnyTime = false;
     }
 
     addPage( url, name ){
@@ -24,11 +25,17 @@ class Router{
 
     selectPage(pageToSelect,e){
         e.preventDefault();
+
         if(this.currentPage != null)
             this.currentPage.el.classList.remove("pageSelected");
 
         this.currentPage = this.pages[pageToSelect];
         this.currentPage.el.classList.add("pageSelected");
+
+        if(this.reloadPageAnyTime == true ){
+            this.currentPage.load();
+            this.currentPage.unload();
+        }
 
     }
     addStaticEl(url){
