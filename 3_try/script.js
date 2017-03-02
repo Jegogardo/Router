@@ -13,5 +13,7 @@ hub.connect();*/
 document.body.appendChild(p.el);*/
 
 let r = new Router();
-r.addPage("q.php","q");
-r.addPage("q2.php","q2");
+r.addStaticEl("navbar.html");
+r.getPageFromStaticEl();
+// r.addPage("q.php","q");
+// r.addPage("q2.php","q2");

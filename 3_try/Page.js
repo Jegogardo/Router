@@ -50,8 +50,11 @@ class Page{
             this.iframe.contentDocument.write(result.response);
             this.iframe.contentDocument.close();
         }
+        this.hub.onerror = (resutl)=>{
+            this.unload();
+        }
         this.hub.onstart = () =>{
-            setTimeout(function () {
+            this.handlePendingTimeout = setTimeout(function () {
                 if( !this.isLoaded )
                     this.isLoading = true;
             }.bind(this),TIME_START_LOADING)
@@ -62,6 +65,8 @@ class Page{
 
     }
     unload(){
-        this.iframe.innerHTML = "";
+        this.iframe.contentDocument.write("Pagina non trovata");
+        this.isLoading = false;
+
     }
 }
