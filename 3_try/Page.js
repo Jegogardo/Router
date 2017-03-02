@@ -14,15 +14,22 @@ class Page{
         }
 
         if(value) {
-            this.el.classList.add("pageLoading");
-            this.isloaded = false;
+            this.isLoaded = false;
             this._isLoading = true;
         }
         else {
-            this.el.classList.remove("pageLoading");
             this.isLoaded = true;
             this._isLoading = false;
+            this.loadingTransition = false;
         }
+
+    }
+
+    set loadingTransition(value){
+        if(value)
+            this.el.classList.add("pageLoading");
+        else
+            this.el.classList.remove("pageLoading");
 
     }
 
@@ -53,7 +60,6 @@ class Page{
         this.iframe.src=""
         /*this.iframe.contentDocument.open();
         this.iframe.contentDocument.write();*/
-        this.isLoading = false;
         this.isLoaded = false;
 
     }
@@ -79,9 +85,10 @@ class Page{
             this.iframe.contentDocument.write("Pagina non trovata");
         }
         this.hub.onstart = () =>{
+            this.isLoading = true;
             this.handlePendingTimeout = setTimeout(function () {
                 if( !this.isLoaded )
-                    this.isLoading = true;
+                    this.loadingTransition = true;
             }.bind(this),TIME_START_LOADING)
 
         }

@@ -7,6 +7,7 @@ class Router{
     constructor(){
         this.pages = [];
         this.currentPage = null;
+        this.previousPage =  null;
         this.staticEl = null;
         this.events = {"loadedStaticEl":null,};
         this.reloadPageAnyTime = false;
@@ -35,20 +36,25 @@ class Router{
 
         if(this.currentPage != null) {
             this.currentPage.el.classList.remove("pageSelected");
-            this.currentPage.unload();
+            this.previousPage = this.currentPage;
         }
+
 
         this.currentPage = this.pages[pageToSelect];
         this.currentPage.el.classList.add("pageSelected");
 
         if(this.reloadPageAnyTime == true ){
             this.currentPage.reload();
-            return;
+        }
+        else{
+            if( !this.currentPage.isLoaded ){
+                this.currentPage.load();
+            }
+
         }
 
-        if( !this.currentPage.isLoaded){
-            this.currentPage.load();
-        }
+        if( this.previousPage != this.currentPage && this.previousPage != null )
+            this.previousPage.unload();
 
     }
     addStaticEl(url){
