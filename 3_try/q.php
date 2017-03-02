@@ -11,6 +11,7 @@
     var i = 1;
     setInterval(function(){
         document.body.innerHTML += i++ +"<br>";
+        console.log("prova q");
     },1000);
 </script>
 

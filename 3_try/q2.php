@@ -1,6 +1,6 @@
 <?php
 
-
+    sleep(3);
     echo "ProvaPHP 2";
 
 ?>

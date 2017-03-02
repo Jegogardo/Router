@@ -8,7 +8,7 @@ class Router{
         this.pages = [];
         this.currentPage = null;
         this.staticEl = null;
-        this.events = {"getPageFromStaticElEvent":document.createEvent('Event'),};
+        this.events = {"loadedStaticEl":null,};
         this.reloadPageAnyTime = false;
     }
 
@@ -16,51 +16,69 @@ class Router{
         let newPage = new Page(url,name);
         document.body.appendChild(newPage.el);
         newPage.iframe.addEventListener("click",this.selectPage.bind(this, newPage), true);
-        newPage.load();
+        //newPage.load();
 
         this.pages.push(newPage);
     }
 
-    loadPage(){}
-
     selectPage(pageToSelect,e){
-        e.preventDefault();
+        if(e != null)
+            e.preventDefault();
 
-        if(this.currentPage != null)
+        if(this.pages.length == 0){
+            this.waitToSelection(pageToSelect);
+            return;
+        }
+        else{
+            document.removeEventListener("loadedStaticEl",this.events.loadedStaticEl);
+        }
+
+        if(this.currentPage != null) {
             this.currentPage.el.classList.remove("pageSelected");
+            this.currentPage.unload();
+        }
 
         this.currentPage = this.pages[pageToSelect];
         this.currentPage.el.classList.add("pageSelected");
 
         if(this.reloadPageAnyTime == true ){
+            this.currentPage.reload();
+            return;
+        }
+
+        if( !this.currentPage.isLoaded){
             this.currentPage.load();
-            this.currentPage.unload();
         }
 
     }
     addStaticEl(url){
+        this.events.loadedStaticEl = document.createEvent('Event');
+        this.events.loadedStaticEl.initEvent("loadedStaticEl",true,true);
+
         let hub = new Hub(url);
         hub.onsuccess = (result) =>{
             let parser = new DOMParser().parseFromString(result.response, "text/html");
             this.staticEl = parser.querySelector("body").childNodes[0];
             document.body.appendChild(this.staticEl);
-            document.dispatchEvent(this.events.getPageFromStaticElEvent);
+            /*if(this.events.getPageFromStaticEl != null)
+                document.dispatchEvent(this.events.getPageFromStaticElEvent);
+             */
+            for( let i=0; i< this.staticEl.childElementCount; i++){
+                let link = this.staticEl.children[i];
+                this.addPage(link.href,link.title,link);
+                link.addEventListener("click",this.selectPage.bind(this,i));
+            }
+
+            if(this.isWaitingToSelection)
+                document.dispatchEvent(this.events.loadedStaticEl);
 
         }
         hub.connect();
     }
 
-    getPageFromStaticEl(){
-        if( this.staticEl == null ) {
-            this.events.getPageFromStaticElEvent.initEvent("staticElPending",true,true);
-            document.addEventListener("staticElPending", this.getPageFromStaticEl.bind(this));
-            return;
-        }
-        for( let i=0; i< this.staticEl.childElementCount; i++){
-            let t = this.staticEl.children[i];
-            this.addPage(t.href,t.title);
-            t.addEventListener("click",this.selectPage.bind(this,i));
-        }
+    waitToSelection(pageToSelect){
+        this.isWaitingToSelection = true;
+        document.addEventListener("loadedStaticEl", this.selectPage.bind(this,pageToSelect));
     }
 
 
