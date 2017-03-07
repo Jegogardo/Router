@@ -11,6 +11,9 @@ class Router{
         this.staticEl = null;
         this.events = {"loadedStaticEl":null,};
         this.reloadPageAnyTime = false;
+
+
+        window.onpopstate = this.updateUrl.bind(this);
     }
 
     addPage( url, name ){
@@ -43,18 +46,27 @@ class Router{
         this.currentPage = this.pages[pageToSelect];
         this.currentPage.el.classList.add("pageSelected");
 
-        if(this.reloadPageAnyTime == true ){
+
+        document.title = this.currentPage.name;
+        if(this.reloadPageAnyTime == true && this.currentPage.isLoaded ){
             this.currentPage.reload();
         }
         else{
             if( !this.currentPage.isLoaded ){
                 this.currentPage.load();
+                //this.updateUrl(/*this.currentPage.url*/);
             }
 
         }
 
-        if( this.previousPage != this.currentPage && this.previousPage != null )
+        if( this.previousPage != this.currentPage && this.previousPage != null &&
+            this.reloadPageAnyTime) {
             this.previousPage.unload();
+            return;
+        }
+
+        this.updateUrl();
+
 
     }
     addStaticEl(url){
@@ -87,5 +99,17 @@ class Router{
         document.addEventListener("loadedStaticEl", this.selectPage.bind(this,pageToSelect));
     }
 
+    updateUrl(event){
+        if(event != null){
+            event.preventDefault();
+            this.selectPage(this.pages.indexOf(this.previousPage));
+            return;
+        }
+        if(this.previousPage != null && event != null && event.state == null)
+            history.pushState({page: this.pages.indexOf(this.currentPage)}, this.currentPage.name, this.currentPage.name);
+    }
+
 
 }
+
+

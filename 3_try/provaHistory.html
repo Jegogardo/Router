@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<a id="t" href="http://localhost/Behaviour/Router/3_try/provaHistory.html" target="_blank" onclick="window.close()">localhost</a>
+<a href="#a">1111111</a>
+<a href="#b">2222222</a>
+<a href="#c">3333333</a>
+
+<div id="a">1111111</div>
+<div id="b">2222222</div>
+<div id="c">3333333</div>
+<script>
+
+    let link = [].slice.call(document.querySelectorAll("a:not(#t)"));
+    var a = document.querySelector("#a");
+    link.forEach(function (l) {
+        l.addEventListener("click", function () {
+            //debugger;
+            if( location.hash == this.hash )
+                return
+            document.title = this.hash;
+            history.pushState({page: this.href}, this.href, this.href);
+
+            a.classList.remove("selected");
+            a = document.querySelector(this.hash);
+            a.classList.add("selected");
+        })
+
+    })
+    window.onpopstate = function (event) {
+        a.classList.remove("selected");
+        a = document.querySelector(event.state.hash);
+        a.classList.add("selected");
+
+    }
+</script>
+<style>
+    .selected{
+        border:2px solid black;
+    }
+</style>
+</body>
+</html>
